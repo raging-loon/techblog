@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Layouts on Blog Site</title>
+    <link>http://localhost:1313/layouts/</link>
+    <description>Recent content in Layouts on Blog Site</description>
+    <generator>Hugo</generator>
+    <language>en-us</language>
+    <lastBuildDate>Wed, 11 Mar 2026 16:20:04 -0400</lastBuildDate>
+    <atom:link href="http://localhost:1313/layouts/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Page</title>
+      <link>http://localhost:1313/layouts/page/</link>
+      <pubDate>Wed, 11 Mar 2026 16:20:04 -0400</pubDate>
+      <guid>http://localhost:1313/layouts/page/</guid>
+      <description></description>
+    </item>
+  </channel>
+</rss>
