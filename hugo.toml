@@ -2,3 +2,9 @@ baseURL = 'https://example.org/'
 languageCode = 'en-us'
 title = 'Blog Site'
 theme = 'risotto'
+ignoreLogs = ['warning-goldmark-raw-html']
+[markup]
+    [markup.highlight]
+        style = 'nord'
+[markup.goldmark.renderer]
+    unsafe = true # Allow HTML in md files

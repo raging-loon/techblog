@@ -6,21 +6,35 @@
     <description>Recent content on Blog Site</description>
     <generator>Hugo</generator>
     <language>en-us</language>
-    <lastBuildDate>Wed, 11 Mar 2026 16:41:59 -0400</lastBuildDate>
+    <lastBuildDate>Thu, 12 Mar 2026 09:39:15 -0400</lastBuildDate>
     <atom:link href="http://localhost:1313/index.xml" rel="self" type="application/rss+xml" />
     <item>
-      <title>Constant Expressions: A Method of Hiding Malicious Data at Compile Time</title>
+      <title>Wmi Persistence</title>
+      <link>http://localhost:1313/posts/malware-development/wmi-persistence/</link>
+      <pubDate>Thu, 12 Mar 2026 09:39:15 -0400</pubDate>
+      <guid>http://localhost:1313/posts/malware-development/wmi-persistence/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>Manual Loading Functions and Libraries for EDR/AV Bypass</title>
+      <link>http://localhost:1313/posts/malware-development/manual-function-loading/</link>
+      <pubDate>Thu, 12 Mar 2026 09:37:21 -0400</pubDate>
+      <guid>http://localhost:1313/posts/malware-development/manual-function-loading/</guid>
+      <description>&lt;h3 id=&#34;table-of-contents&#34;&gt;Table of Contents&lt;/h3&gt;&#xA;&lt;ol&gt;&#xA;&lt;li&gt;Using WINAPI&amp;rsquo;s LoadLibary and GetProcAddress&lt;/li&gt;&#xA;&lt;li&gt;Loading Libraries directly from the PEB&lt;/li&gt;&#xA;&lt;li&gt;Disguising access to the PEB using assembly&lt;/li&gt;&#xA;&lt;li&gt;Loading Functions from an executable&amp;rsquo;s Export Table&lt;/li&gt;&#xA;&lt;li&gt;Bonus: Function Address Obfuscation&lt;/li&gt;&#xA;&lt;/ol&gt;&#xA;&lt;h3 id=&#34;introduction&#34;&gt;Using WINAPI&amp;rsquo;s LoadLibrary and GetProcAddress&lt;/h3&gt;&#xA;&lt;p&gt;One of the &lt;em&gt;very first things&lt;/em&gt; an analyst will likely do is get an overall picture of what a malware sample is doing. This will likely include listing all function imports and exports. You can hide what functions you import by not using them directly i.e. not allowing MSVC or whatever other compiler you are using to resolve function references for you. Windows provides a handful of functions for doing just this: &lt;code&gt;LoadLibrary(Ex)&lt;/code&gt;, &lt;code&gt;GetProcAddress&lt;/code&gt;, &lt;code&gt;GetModuleHandle&lt;/code&gt;, and so on. I will focus on the former two.&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>Constant Expressions: Hiding Malicious Data at Compile Time</title>
       <link>http://localhost:1313/posts/malware-development/constant-expressions/</link>
       <pubDate>Wed, 11 Mar 2026 16:41:59 -0400</pubDate>
       <guid>http://localhost:1313/posts/malware-development/constant-expressions/</guid>
       <description>&lt;h3 id=&#34;table-of-contents&#34;&gt;Table of Contents&lt;/h3&gt;&#xA;&lt;ol&gt;&#xA;&lt;li&gt;Introduction&lt;/li&gt;&#xA;&lt;li&gt;Constant Expressions and Type Deduction&lt;/li&gt;&#xA;&lt;li&gt;XOR Encryption&lt;/li&gt;&#xA;&lt;li&gt;Rolling XOR Encryption&lt;/li&gt;&#xA;&lt;li&gt;Key Generation&lt;/li&gt;&#xA;&lt;li&gt;Polymorphic Encryption&lt;/li&gt;&#xA;&lt;li&gt;Speck 64/128 Encryption&lt;/li&gt;&#xA;&lt;li&gt;Closing Thoughts&lt;/li&gt;&#xA;&lt;/ol&gt;&#xA;&lt;h3 id=&#34;introduction&#34;&gt;Introduction&lt;/h3&gt;&#xA;&lt;p&gt;When you are analyzing a piece of malware, or even just benign software in general, the first thing you might look at are strings. Strings could reveal data such as IP Addresses, domain names, error messages, and even things like WMI Queries or embedded scripts. I&amp;rsquo;ve seen some malware brazenly brand itself as such using the strings within it.&lt;/p&gt;</description>
     </item>
     <item>
-      <title>Info Stealer</title>
+      <title>Writing an Info Stealer</title>
       <link>http://localhost:1313/posts/malware-development/info-stealer/</link>
       <pubDate>Wed, 11 Mar 2026 16:33:41 -0400</pubDate>
       <guid>http://localhost:1313/posts/malware-development/info-stealer/</guid>
-      <description>&lt;h1 id=&#34;title&#34;&gt;Writing an Infostealer&lt;/h1&gt;&#xA;&lt;h3 id=&#34;table-of-contents&#34;&gt;Table of Contents&lt;/h3&gt;&#xA;&lt;ol&gt;&#xA;&lt;li&gt;Introduction&lt;/li&gt;&#xA;&lt;li&gt;API Hashing&lt;/li&gt;&#xA;&lt;li&gt;The Scheduler&lt;/li&gt;&#xA;&lt;li&gt;WMI and JSON&lt;/li&gt;&#xA;&lt;li&gt;Exfiltration&lt;/li&gt;&#xA;&lt;li&gt;Trojanization&lt;/li&gt;&#xA;&lt;/ol&gt;&#xA;&lt;h3 id=&#34;Introduction&#34;&gt;Introduction&lt;/h3&gt;&#xA;&lt;p&gt;This infostealer is called &amp;ldquo;Sumatra Stealer&amp;rdquo; because it is a trojanized version of a software called &amp;ldquo;&lt;a href=&#34;https://www.sumatrapdfreader.org/free-pdf-reader&#34;&gt;SumatraPDF&lt;/a&gt;&amp;rdquo;. My malware, in the form of a static library and some small modifications to the original source code, is compiled alongside the legitimate source code of SumatraPDF, making it difficult to distinguish between the two.&lt;/p&gt;&#xA;&lt;p&gt;The overall pipeline of my malware is as follows:&lt;/p&gt;</description>
+      <description>&lt;h3 id=&#34;table-of-contents&#34;&gt;Table of Contents&lt;/h3&gt;&#xA;&lt;ol&gt;&#xA;&lt;li&gt;Introduction&lt;/li&gt;&#xA;&lt;li&gt;API Hashing&lt;/li&gt;&#xA;&lt;li&gt;The Scheduler&lt;/li&gt;&#xA;&lt;li&gt;WMI and JSON&lt;/li&gt;&#xA;&lt;li&gt;Exfiltration&lt;/li&gt;&#xA;&lt;li&gt;Trojanization&lt;/li&gt;&#xA;&lt;/ol&gt;&#xA;&lt;h3 id=&#34;Introduction&#34;&gt;Introduction&lt;/h3&gt;&#xA;&lt;p&gt;This infostealer is called &amp;ldquo;Sumatra Stealer&amp;rdquo; because it is a trojanized version of a software called &amp;ldquo;&lt;a href=&#34;https://www.sumatrapdfreader.org/free-pdf-reader&#34;&gt;SumatraPDF&lt;/a&gt;&amp;rdquo;. My malware, in the form of a static library and some small modifications to the original source code, is compiled alongside the legitimate source code of SumatraPDF, making it difficult to distinguish between the two.&lt;/p&gt;&#xA;&lt;p&gt;The overall pipeline of my malware is as follows:&lt;/p&gt;</description>
     </item>
     <item>
       <title>Test Post</title>
