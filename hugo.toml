@@ -8,3 +8,7 @@ ignoreLogs = ['warning-goldmark-raw-html']
         style = 'nord'
 [markup.goldmark.renderer]
     unsafe = true # Allow HTML in md files
+
+[caches]
+  [caches.images]
+    dir = ':cacheDir/images'

@@ -9,11 +9,11 @@
     <lastBuildDate>Thu, 12 Mar 2026 09:39:15 -0400</lastBuildDate>
     <atom:link href="http://localhost:1313/index.xml" rel="self" type="application/rss+xml" />
     <item>
-      <title>Wmi Persistence</title>
+      <title>WMI Based Persistence Mechanisms for Malicious C&#43;&#43; Applications</title>
       <link>http://localhost:1313/posts/malware-development/wmi-persistence/</link>
       <pubDate>Thu, 12 Mar 2026 09:39:15 -0400</pubDate>
       <guid>http://localhost:1313/posts/malware-development/wmi-persistence/</guid>
-      <description></description>
+      <description>&lt;h3 id=&#34;table-of-contents&#34;&gt;Table of Contents&lt;/h3&gt;&#xA;&lt;ol&gt;&#xA;&lt;li&gt;Introduction&lt;/li&gt;&#xA;&lt;li&gt;WMI Via C++&lt;/li&gt;&#xA;&lt;li&gt;Persistence via MOFs&lt;/li&gt;&#xA;&lt;li&gt;MOF Compilation using IMOFCompile&lt;/li&gt;&#xA;&lt;li&gt;Persistence via Event Subscription&lt;/li&gt;&#xA;&lt;li&gt;WMI Function Calls: schtasks.exe&lt;/li&gt;&#xA;&lt;li&gt;Remote WMI Function Calls&lt;/li&gt;&#xA;&lt;li&gt;Win32_ScheduledJob&lt;/li&gt;&#xA;&lt;li&gt;Evasion: Why WMI Interfaces are Awesome&lt;/li&gt;&#xA;&lt;li&gt;Other Useful WMI Objects&lt;/li&gt;&#xA;&lt;li&gt;Closing Thoughts&lt;/li&gt;&#xA;&lt;/ol&gt;&#xA;&lt;p&gt;All demo applications for this article can be found &lt;a href=&#34;https://github.com/raging-loon/wmi-examples/&#34;&gt;here&lt;/a&gt;.&lt;/p&gt;&#xA;&lt;h3 id=&#34;intro&#34;&gt;Introduction&lt;/h3&gt;&#xA;&lt;p&gt;Windows Management Infrastructure (WMI) is a powerful monitoring and management tool. It can be used both locally and remotely to view and modify information and even executing commands.&lt;/p&gt;</description>
     </item>
     <item>
       <title>Manual Loading Functions and Libraries for EDR/AV Bypass</title>
