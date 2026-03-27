@@ -19,7 +19,7 @@ weight = 2
 4. Next Steps
 
 #### Packet Analyzers and the Protocol Manager
-In my previous project, vigil, I developed a relatively naive solution to the problem of associating protocols with analyzers. That is, each protocol decoding function (aptly named otherwise to confuse future readers of the code base), simply contained a massive switch statement:
+In my previous project, Vigil, I developed a relatively naive solution to the problem of associating protocols with analyzers. That is, each protocol decoding function (aptly named otherwise to confuse future readers of the code base), simply contained a massive switch statement:
 ```c++
 switch (ip_header->protocol)
 {
@@ -35,7 +35,7 @@ One aim of this project is to solve that. While I will be doing this in C++, I w
 
 ##### Analyzers
 
-An analyzer derives from the `sensor::Analyzer` base class and contains a `sensor::tag_t`, a 64 bit integer identifying the analyzer. The tag ideally would be a set of no more than 8 characters, such as `'ethernet'`. This fits nicely within a `uint64_t`, however the compiler doesn't necessarily appreciate it. I got the idea of using this from having developed fairly basic drivers using the WDK. There is a function called `ExAllocatePoolWithTag` that uses this exact technique.
+An analyzer derives from the `sensor::Analyzer` base class and contains a `sensor::tag_t`, a 64 bit integer identifying the analyzer. The tag ideally would be a set of no more than 8 characters, such as `'ethernet'`. This fits nicely within a `uint64_t`; however the compiler doesn't necessarily appreciate it. I got the idea of using this from having developed fairly basic drivers using the WDK. There is a function called `ExAllocatePoolWithTag` that uses this exact technique.
 
 Here is the layout of the `Analyzer` class:
 ```c++
@@ -62,7 +62,7 @@ protected:
 };
 ```
 
-The analyze function a critical part of this class. It takes a `PacketData` - which may in the future be replaced with a `std::span` or something similar - which contains a pointer to the very base of the packet and total length. `data` and `length` refer only to subsections of `PacketData`. For example, as seen below when we discuss analyzing the ethernet protocol, the `data` and `length` of the next protocol, regardless of what it might be, are adjusted so that they respectively point to and describe the next protocol,  while preserving the original packet in the `PacketData`.
+The analyze function is a critical part of this class. It takes a `PacketData` - which may in the future be replaced with a `std::span` or something similar - which contains a pointer to the very base of the packet and total length. `data` and `length` refer only to subsections of `PacketData`. For example, as seen below when we discuss analyzing the ethernet protocol, the `data` and `length` of the next protocol, regardless of what it might be, are adjusted so that they respectively point to and describe the next protocol,  while preserving the original packet in the `PacketData`.
 
 Finally, the protocol map serves to, alongside the `ProtocolManager`, map protocol specific protocol numbers to their respective analyzers. These analyzers use `weak_ptr`s because they shouldn't be storing a hard reference to any other analyzer. This could cause issues if we need to decode embedded protocols. For example, an IP tunnelling analyzer might have a pipeline that looks like this: `Ethernet -> IP -> IP Tunnel -> IP -> TCP -> ...`. If we stored `shared_ptr`s to and from each of these protocols, we would have a circular reference cycle; there would be no way for certain reference counts to reach zero, and we could thus leak memory.
 
@@ -118,7 +118,7 @@ private:
 };
 ```
 
-While this is likely due to change in the future, especially if any type of configuration via file is to be done, it is suitable for now:
+While this is likely to change in the future, especially if any type of configuration via file is to be done, it is suitable for now:
 
 ```c++
     auto pm = std::make_shared<ProtocolManager>();
@@ -155,7 +155,7 @@ CaptureSession::~CaptureSession()
 bool CaptureSession::isReady() const { return m_handle != nullptr; }
 ```
 
-With this we can be capturing packets. There are a couple ways to do this. One is via `pcap_next`, this is a very manual process; the other is `pcap_loop`, this takes a callback and does quite a bit of work for you. I will be using the latter and running it on a separate thread.
+With this we can be capturing packets. There are a couple of ways to do this. One is via `pcap_next`, this is a very manual process; the other is `pcap_loop`, this takes a callback and does quite a bit of work for you. I will be using the latter and running it on a separate thread.
 ```c++
 void PcapLoopFunction(u_char* args, const pcap_pkthdr* hdr, const u_char* pkt)
 {
@@ -237,7 +237,7 @@ bool EthernetAnalyzer::analyze(
 
 ```
 
-This is essentially repeated in the IP and TCP analyzers; no in depth analysis is currently being performed.
+This is essentially repeated in the IP and TCP analyzers; no in-depth analysis is currently being performed.
 
 #### Next Steps
 

@@ -21,7 +21,7 @@ weight = 1
 ### Introduction
 Network Intrusion Detection Systems (NIDS) and Prevention Systems (NIPS) are an important part of the in-depth defense of an organization. These are systems that analyze networking traffic, apply some sort of detection logic, and in some cases, actively block network traffic deemed malicious.
 
-Many years ago, I developed an IDS which I called 'Vigil' (as in 'a period of observation/surveillance') and later renamed it to 'NSense'. This was one of my very first programming projects that were not simple scripts or experiments. While I cannot attest to the quality of the previous project, it most certainly helped me learn a lot of what I know today. 
+Many years ago, I developed an IDS which I called 'Vigil' (as in 'a period of observation/surveillance') and later renamed it to 'NSense'. This was one of my very first programming projects that was a not simple script or experiment. While I cannot attest to the quality of the previous project, it most certainly helped me learn a lot of what I know today. 
 
 This series of articles aims to redevelop the previous system by applying what I have learned over the last 6 years.
 
@@ -37,7 +37,7 @@ Some specific features I would like to implement throughout this series of artic
 2. Conversation Analysis
 3. Flow Analysis (e.g. for detecting beaconing)
 4. Custom Rule Language - likely based on Snort's
-5. Event driven analysis - network traffic should be treated as a stream of events containing data, not data alone
+5. Event-driven analysis - network traffic should be treated as a stream of events containing data, not data alone
 6. Aho-Corasick Search Algorithm
 7. NFA-Based Regex Implementation
 8. Analysis of PCAP Files
@@ -80,9 +80,9 @@ The analysis pipeline will consist of the following steps:
 1. Capture a frame from an interface (capture thread)
 2. Queue this frame for analysis
 3. A worker/analysis thread picks up with the work
-4. This thread starts decoding process, which consists of extract each sub-protocol from the frame
+4. This thread starts decoding process, which consists of extracting each sub-protocol from the frame
 5. For each protocol, an event is created indicating that it was found
-6. Also for each protocol, preliminary analysis is done by the decoder itself. If it finds, for example, a TCP packet with no or all flags set, it might create an event indicating that.
+6. Also for each protocol, preliminary analysis is done by the decoder itself. If it finds, for example, a TCP packet with suspicious flags, it might create an event indicating that.
 7. Event Handlers for the various events will determine what happens next. This might be logging, blocking, etc.
 
 Here is a diagram illustrating this:
