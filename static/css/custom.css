@@ -11,16 +11,16 @@ h2 {
 }
 
 h3 {
-    font-size: 1.5em !important;
+    font-size: 1.75em !important;
 }
 h4 {
-    font-size: 1.25em !important;
+    font-size: 1.5em !important;
 }
 h5 {
-    font-size: 0.83em !important;
+    font-size: 1.25em !important;
 }
 h6 {
-    font-size: 0.75em !important;
+    font-size: 1em !important;
 }
 img {
     max-width: 100% !important;
@@ -39,4 +39,15 @@ th, td {
 
 div.page section ul li {
     margin-top: .5rem !important;
+}
+
+.link-button {
+    text-decoration: none;
+    background-color: #a1b56c;
+    color: #181818 !important;
+    padding: 0.1rem;
+    opacity: 0.90;
+}
+.link-button:hover {
+    opacity: 1;
 }

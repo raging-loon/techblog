@@ -1,8 +1,16 @@
 +++
 date = '2026-03-17T09:50:57-04:00'
 draft = true
-title = 'NIDS - An Introduction'
+title = 'NIDS 00 - An Introduction'
+weight = 1
 +++
+<br>
+<div>
+    <a class="link-button" href="../">Article Home</a>
+    <a class="link-button" href="../article-02">Next</a>
+</div>
+<br>
+
 ### Table of Contents
 1. Introduction & Goals
 2. Features
@@ -84,3 +92,8 @@ Here is a diagram illustrating this:
 #### Next Steps
 
 The next article will cover setting up libpcap and analysis threads.
+
+<div>
+    <a class="link-button" href="../">Article Home</a>
+    <a class="link-button" href="../article-02">Next</a>
+</div>
