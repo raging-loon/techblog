@@ -31,8 +31,7 @@ switch (ip_header->protocol)
         break;
 }
 ```
-One aim of this project is to solve that. While I will be doing this in C++, I will also explore how it could be done in C, the language vigil was written in.
-
+One aim of this project is to solve that.
 ##### Analyzers
 
 An analyzer derives from the `sensor::Analyzer` base class and contains a `sensor::tag_t`, a 64 bit integer identifying the analyzer. The tag ideally would be a set of no more than 8 characters, such as `'ethernet'`. This fits nicely within a `uint64_t`; however the compiler doesn't necessarily appreciate it. I got the idea of using this from having developed fairly basic drivers using the WDK. There is a function called `ExAllocatePoolWithTag` that uses this exact technique.
