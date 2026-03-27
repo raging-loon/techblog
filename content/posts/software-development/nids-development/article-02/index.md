@@ -69,7 +69,7 @@ Finally, the protocol map serves to, alongside the `ProtocolManager`, map protoc
 ##### The Protocol Manager
 The protocol manager does two things:
 1. It stores instances of analyzers
-2. It helps associate one analyzer with another given a protcol number.
+2. It helps associate one analyzer with another given a protocol number.
 
 The protocol manager contains a mapping of `tag_t` to `Analyzer` and for each new association, updates the parent `Analyzer`'s protocol map. In the end, it is reminiscent of a graph.
 
@@ -127,7 +127,7 @@ While this is likely due to change in the future, especially if any type of conf
 ```
 #### The Capture Session
 
-A `CaptureSession` encapulsates all information related to a specific instance of a `libpcap` capture loop (`pcap_loop`) including the thread upon which it is running. With this setup, and a manager class for it (not covered here), we could conceivably have an array of `CaptureSession`s, one per relavent interface. Furthermore, the `CaptureSession` receives a pointer to a protocol manager.
+A `CaptureSession` encapsulates all information related to a specific instance of a `libpcap` capture loop (`pcap_loop`) including the thread upon which it is running. With this setup, and a manager class for it (not covered here), we could conceivably have an array of `CaptureSession`s, one per relevant interface. Furthermore, the `CaptureSession` receives a pointer to a protocol manager.
 
 The `CaptureSession` starts by obtaining a handle from `libpcap` to the target network interface:
 ```c++
@@ -175,7 +175,7 @@ void CaptureSession::beginCapture()
     );
 }
 ```
-The casting is an unpleasant but necessary requirement for `libpcap`. It is a C library - there is no extensive type information and no templating that would allow for a completely typesafe inplementation, but it *is* the lowest common denominator. Therefore we must cast the pointer to our `CaptureSession*` to a `u_char*` and then back to a `CaptureSession*`.
+The casting is an unpleasant but necessary requirement for `libpcap`. It is a C library - there is no extensive type information and no templating that would allow for a completely type-safe implementation, but it *is* the lowest common denominator. Therefore we must cast the pointer to our `CaptureSession*` to a `u_char*` and then back to a `CaptureSession*`.
 
 #### Beginning the Analysis Pipeline
 In `PcapLoopFunction`, there is a call to `CaptureSession::nextPacket`. This is the entry to the decoding and analysis pipeline. 

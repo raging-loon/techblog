@@ -19,7 +19,7 @@ weight = 1
 5. Next Steps
 
 ### Introduction
-Network Intrustion Detection Systems (NIDS) and Prevention Systems (NIPS) are an important part of the in-depth defense of an organization. These are systems that analyze networking traffic, apply some sort of detection logic, and in some cases, actively block network traffic deamed malicious.
+Network Intrusion Detection Systems (NIDS) and Prevention Systems (NIPS) are an important part of the in-depth defense of an organization. These are systems that analyze networking traffic, apply some sort of detection logic, and in some cases, actively block network traffic deemed malicious.
 
 Many years ago, I developed an IDS which I called 'Vigil' (as in 'a period of observation/surveillance') and later renamed it to 'NSense'. This was one of my very first programming projects that were not simple scripts or experiments. While I cannot attest to the quality of the previous project, it most certainly helped me learn a lot of what I know today. 
 
