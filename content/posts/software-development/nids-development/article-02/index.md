@@ -8,7 +8,7 @@ weight = 2
 <div>
     <a class="link-button" href="../article-01">Prev</a>
     <a class="link-button" href="../">Article Home</a>
-    <!-- <a class="link-button" href="">Next</a> -->
+    <a class="link-button" href="../article-03/">Next</a>
 </div>
 <br>
 
@@ -245,8 +245,10 @@ Now that we have a way to create a complex decoding pipeline, we can begin to pe
 2. Event Manager/Bus - When *something* is encountered in a packet, including the packet itself, an event should be created and a handler called
 3. More standardized error handling - Right now there is none - only returning true/false
 
+<br>
 <div>
     <a class="link-button" href="../article-01">Prev</a>
     <a class="link-button" href="../">Article Home</a>
-    <!-- <a class="link-button" href="">Next</a> -->
+    <a class="link-button" href="../article-03/">Next</a>
 </div>
+<br>
