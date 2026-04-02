@@ -1,6 +1,6 @@
 +++
 date = '2026-04-01T10:02:20-04:00'
-draft = true
+draft = false
 weight = 3
 title = 'NIDS 02 - New Decoding Design and Memory Allocation'
 +++
@@ -77,7 +77,7 @@ Finally, the decoded protocols are stored in an allocator, which is owned by `Pa
 ![](images/image.png)
 
 ### Linear Memory Allocation {id=linear-memory-allocation}
-The allocator used by `Packet` is a Linear or Arena allocator. This solves a very important problem that would assuredly cause more problems in the future: polymorphism is handled at the pointer and reference level (i.e. vtables). To store a list of decoded `Protocol`s using an STL container would look something like this:
+The allocator used by `Packet` is a Linear or Arena allocator. This solves a very important problem that would assuredly cause more problems in the future: polymorphism is handled at the pointer and reference level (i.e. vtables). Storing a list of decoded `Protocol`s using an STL container would look something like this:
 ```c++
 std::vector<Protocol*>
 // or
@@ -85,7 +85,7 @@ std::vector<std::shared_ptr<Protocol>>
 ```
 There is nothing inherently wrong with this...except for the fact that this usually requires heap memory allocation. This would heap allocate memory several times *per packet*.
 
-The solution I came up with was a Linear Allocator. While not quite as type-safe, it solves the problem at hand. The Linear Allocator would allocate one gigantic buffer, then 'suballocate' chunks of that buffer, one after the other (hence *linear*). One problem with this system is that it by itself does not provide a way to track allocations. This would not be a problem in a pool allocator, which is essentially a (potentially fragmented) dynamic array. Another is that it cannot safely store types that have a destructor defined (i.e. *not* `std::is_trivially_destructible`). To solve this, I designed a wrapper around this called a Tracked Linear Allocator. This will store not only a pointer to the allocated object but also a pointer to a deleter function to destroy it if necessary.
+The solution I came up with was a Linear Allocator. While not quite as type-safe, it solves the problem at hand. The Linear Allocator would allocate one gigantic buffer, then 'suballocate' chunks of that buffer, one after the other (hence *linear*). One problem with this system is that it by itself does not provide a way to track allocations. This would not be a problem in a pool allocator, which is essentially a (potentially fragmented) dynamic array. Another is that it cannot safely store types that have a destructor defined (i.e. *not* `std::is_trivially_destructible`). To solve these, I designed a wrapper around this called a Tracked Linear Allocator. This will store not only a pointer to the allocated object but also a pointer to a deleter function to destroy it if necessary.
 
 Here is a diagram of the linear allocator (TLA = `TrackedLinearAllocator`):
 ![](images/image2.png)
@@ -93,12 +93,12 @@ Here is a diagram of the linear allocator (TLA = `TrackedLinearAllocator`):
 The final issue solved by the `TrackedLinearAllocator` is that the `LinearAllocator` cannot be resized safely. Pointers to and within allocations would be invalid and cause a segmentation fault or logic errors depending on how the invalid data is used. `TrackedLinearAllocator` allows this to be solved by its very nature - tracking allocations.
 
 #### `sensor::LinearAllocator`
-This is the easy part. Its sole responsibility is to calculate and align a pointer into the buffer and return. The complicated part of this is memory alignment. 
+This is the easy part. Its sole responsibility is to calculate and align a pointer into the buffer and return it. The complicated part of this is memory alignment. 
 
 ##### Memory Alignment
-Processors can only access memory within their word boundaries; on x86_64 systems, this is 64 bits (8 bytes). This allows the process to fetch whatever is at that address with one fetch operation. Therefore, all memory allocations need to start at that boundary, otherwise the processor would need to execute two read operations, making memory access twice as slow. To accomplish alignment, we can use either `std::align` or do it by hand. I have chosen the later. 
+Processors can only access memory within their word boundaries; on x86_64 systems, this is 64 bits (8 bytes). This allows the processor to fetch whatever is at that address with one fetch operation. Therefore, all memory allocations need to start at that boundary, otherwise the processor would need to execute two read operations, making memory access twice as slow. To accomplish alignment, we can use either `std::align` or do it by hand. I have chosen the latter. 
 
-The formula for memory alignment look something like this:
+The formula for memory alignment looks like this:
 
 ```c++
     padding = (alignment - (address % alignment)) % alignment
@@ -120,7 +120,7 @@ This can be broken down into 3 parts:
     If we use 50 again, the result of step 2 is 6. The modulus of 6 and 8 is 6, thus preserving the padding we calculated in steps 1 and 2. 
 
 ##### Class Definition
-Finally, this is the class declaration for `sensor::LinearAllocator` save the comments.
+Finally, this is the class definition for `sensor::LinearAllocator`, save the comments.
 
 ```c++
 class LinearAllocator
@@ -198,6 +198,7 @@ void* TrackedLinearAllocator::allocate(size_t size, size_t alignment, AllocatorD
 ```
 The most important part of this function, besides storing allocations, is that it calculates the total aligned size of the allocation. This will be useful in the next section, where we will discuss resizing.
 
+The next allocator function is a wrapper around the previous. It determines the size and alignment of the allocation and constructs a deleter if necessary:
 ```c++
 ///////////////////////////
 //// LinearAllocator.h ////
@@ -219,8 +220,8 @@ T* allocate(Args&&... args)
 ```
 
 ##### Resizing the Buffer
-Now comes the tricky part. A buffer should ideally be able to be resized to any size. If we have an allocation at address 0x8 that is four bytes (i.e. 0x8 through 0xc) and we resize the array to 0xa, the allocation will be 'cut in half'. We will have to do some pointer arithmetic to determine if a given object either a) lies completely outside of the the new buffer or b) lies within the buffer, but is too big to fit:
-![](images/image3.png)
+Now comes the tricky part. A buffer should ideally be able to be resized to any size. Say we have a buffer of 0x14 bytes. If we have an allocation at address 0x8 that is four bytes (i.e. 0x8 through 0xc) and we resize the array to 0xa, the allocation will be 'cut in half'. We will have to do some pointer arithmetic to determine if a given object either a) lies completely outside of the the new buffer or b) lies within the buffer, but is too big to fit:
+![](images/image5.png)
 
 The steps for this would ONLY apply if the new size is less than the old size:
 1. Determine what allocations cannot be stored in the new buffer
