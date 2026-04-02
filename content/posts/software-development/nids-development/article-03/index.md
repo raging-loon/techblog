@@ -2,7 +2,7 @@
 date = '2026-04-01T10:02:20-04:00'
 draft = false
 weight = 3
-title = 'NIDS 02 - New Decoding Design and Memory Allocation'
+title = 'NIDS 02 - New Decoding Design and Linear Memory Allocation'
 +++
 <br>
 <div>
@@ -30,9 +30,9 @@ Or even rules with function calls:
 ```
 http.headers.contains("Content-Type: application/malware")
 ```
-Furthermore, we need a way to print packets to the console. To facilitate the latter and prepare for the former, I have defined a system wherein each protocol has defined for it a subclass of `sensor::Analyzer` and a subclass of `sensor::Protocol`. The `Analyzer` class receives the raw packet data, parses it and sets information in the `Protocol` class. This system is surely due to change and I expect in the future, `Analyzer` will act more like a router so the respective `Protocol`s can parse their data. 
+Furthermore, we need a way to print packets to the console. To facilitate the latter and prepare for the former, I have defined a system wherein each protocol has a subclass of `sensor::Analyzer` and a subclass of `sensor::Protocol` designed for it. The `Analyzer` class receives the raw packet data, parses it, and sets information in the `Protocol` class. This system is surely due to change and I expect in the future, `Analyzer` will act more like a router so the respective `Protocol`s can parse their data. 
 
-Right now the `Protocol` class contains only a function for string conversion:
+Currently, the `Protocol` class contains only a function for string conversion:
 ```c++
 class Protocol
 {
@@ -45,7 +45,7 @@ public:
 
 Next, the previous design had `Analyzer` subclasses doing the heavy work of forwarding packets themselves:
 ```c++
-bool IPAanlyzer::analyze(...) 
+bool IPAnalyzer::analyze(...) 
 {
     ...
     if (m_protoMap.contains(iphdr->protocol))
@@ -85,7 +85,7 @@ std::vector<std::shared_ptr<Protocol>>
 ```
 There is nothing inherently wrong with this...except for the fact that this usually requires heap memory allocation. This would heap allocate memory several times *per packet*.
 
-The solution I came up with was a Linear Allocator. While not quite as type-safe, it solves the problem at hand. The Linear Allocator would allocate one gigantic buffer, then 'suballocate' chunks of that buffer, one after the other (hence *linear*). One problem with this system is that it by itself does not provide a way to track allocations. This would not be a problem in a pool allocator, which is essentially a (potentially fragmented) dynamic array. Another is that it cannot safely store types that have a destructor defined (i.e. *not* `std::is_trivially_destructible`). To solve these, I designed a wrapper around this called a Tracked Linear Allocator. This will store not only a pointer to the allocated object but also a pointer to a deleter function to destroy it if necessary.
+The solution I came up with was a Linear Allocator. While not quite as type-safe, it solves the problem at hand. The Linear Allocator would allocate one gigantic buffer, then 'suballocate' chunks of that buffer, one after the other (hence *linear*). One problem with this system is that it, by itself, does not provide a way to track allocations. This would not be a problem in a pool allocator, which is essentially a (potentially fragmented) dynamic array. A pool allocator allocates fixed-sized chunks of data and can handle resizing, arbitrary free-ing, and destruction itself. Another is that it cannot safely store types that have a destructor defined (i.e. *not* `std::is_trivially_destructible`). To solve these, I designed a wrapper around this called a Tracked Linear Allocator. This will store not only a pointer to the allocated object but also a pointer to a deleter function to destroy it if necessary.
 
 Here is a diagram of the linear allocator (TLA = `TrackedLinearAllocator`):
 ![](images/image2.png)
@@ -96,7 +96,7 @@ The final issue solved by the `TrackedLinearAllocator` is that the `LinearAlloca
 This is the easy part. Its sole responsibility is to calculate and align a pointer into the buffer and return it. The complicated part of this is memory alignment. 
 
 ##### Memory Alignment
-Processors can only access memory within their word boundaries; on x86_64 systems, this is 64 bits (8 bytes). This allows the processor to fetch whatever is at that address with one fetch operation. Therefore, all memory allocations need to start at that boundary, otherwise the processor would need to execute two read operations, making memory access twice as slow. To accomplish alignment, we can use either `std::align` or do it by hand. I have chosen the latter. 
+Processors can only access memory within their alignment boundaries; on x86_64 systems, this is 64 bits (8 bytes). This allows the processor to fetch whatever is at that address with one fetch operation. Therefore, all memory allocations need to start at that boundary, otherwise the processor would need to execute two read operations, making memory access twice as slow. To accomplish alignment, we can use either `std::align` or do it by hand. I have chosen the latter. 
 
 The formula for memory alignment looks like this:
 
@@ -167,7 +167,7 @@ This structure contains all of the information needed to locate, delete, and rea
 
 ##### The Allocation Function[s]
 
-The `TrackedLinearAllocator` contains two `allocate` functions. One is the base allocator function - it performs the allocation by calling `LinearAllocator::allocate` and stores the `Allocation` information. The second is a templated version that automatically passes parameters to the first:
+The `TrackedLinearAllocator` contains two `allocate` functions. One is the base allocator function - it performs the allocation by calling `LinearAllocator::allocate` and storing the `Allocation` information. The second is a templated version that automatically passes parameters to the first:
 
 ```c++
 /////////////////////////////
