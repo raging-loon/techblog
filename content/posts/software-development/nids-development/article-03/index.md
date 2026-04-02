@@ -310,6 +310,9 @@ void PacketPrinter::print()
 
 ![](images/image4.png)
 
+And finally, we can hex dump packets:
+![](images/image6.png)
+
 <br>
 <div>
     <a class="link-button" href="../article-02">Prev</a>
