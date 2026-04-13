@@ -8,7 +8,7 @@ title = 'NIDS 02 - New Decoding Design and Linear Memory Allocation'
 <div>
     <a class="link-button" href="../article-02">Prev</a>
     <a class="link-button" href="../">Article Home</a>
-    <!-- <a class="link-button" href="">Next</a> -->
+    <a class="link-button" href="../article-04/">Next</a>
 </div>
 <br>
 
@@ -317,6 +317,6 @@ And finally, we can hex dump packets:
 <div>
     <a class="link-button" href="../article-02">Prev</a>
     <a class="link-button" href="../">Article Home</a>
-    <!-- <a class="link-button" href="">Next</a> -->
+    <a class="link-button" href="../article-04/">Next</a>
 </div>
 <br>

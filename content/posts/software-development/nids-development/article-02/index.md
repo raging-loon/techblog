@@ -13,10 +13,10 @@ weight = 2
 <br>
 
 ### Table Of Contents
-1. Creating a simple decoding pipeline
-2. Setting up a capture session and thread
-3. Beginning the Analysis Pipeline
-4. Next Steps
+1. [Creating a simple decoding pipeline](#packet-analyzers-and-the-protocol-manager)
+2. [Setting up a capture session and thread](#the-capture-session)
+3. [Beginning the Analysis Pipeline](#beginning-the-analysis-pipeline)
+4. [Next Steps](#next-steps)
 
 #### Packet Analyzers and the Protocol Manager
 In my previous project, Vigil, I developed a relatively naive solution to the problem of associating protocols with analyzers. That is, each protocol decoding function (aptly named otherwise to confuse future readers of the code base), simply contained a massive switch statement:
