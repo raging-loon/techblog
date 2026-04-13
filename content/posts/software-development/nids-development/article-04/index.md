@@ -56,7 +56,7 @@ private:
 ```
 
 As is evident, this is a pretty hefty class. This diagram illustrates how this threads are used:
-<!-- Diagram -->
+![](images/diagram.png)
 
 The `Pipeline` creates one thread (`inputReadingThread`) that reads data from `m_ioSource`. It then locks the mutex (1), pushes the read data into `m_workQueue` (2), and finally notifies all waiting threads that there is data (3):
 
