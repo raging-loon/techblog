@@ -2,11 +2,11 @@
 date = '2026-04-06T09:50:42-04:00' 
 draft = false
 weight = 4
-title = 'NIDS 04 - IO Sources and Multithreading'
+title = 'NIDS 03 - IO Sources and Multithreading'
 +++
 <br>
 <div>
-    <a class="link-button" href="../article-04">Prev</a>
+    <a class="link-button" href="../article-03">Prev</a>
     <a class="link-button" href="../">Article Home</a>
 </div>
 <br>
@@ -20,13 +20,13 @@ title = 'NIDS 04 - IO Sources and Multithreading'
 4. [The Next Set of Articles](#the-next-set-of-articles)
 
 ### Introduction
-One of the things that makes modern computer so fast is not just the minute silicon transistors, but multithreading. This is one area in particular where C++ shines...and where Vigil was grossly lacking. The goal then, of this feature, is to provide a way to capture on multiple interface and provide several worker threads for those interfaces to send work to. 
+One of the things that makes modern computers so fast is not just the minute silicon transistors, but multithreading. This is one area in particular where C++ shines...and where Vigil was grossly lacking. The goal then, of this feature, is to provide a way to capture on multiple interfaces and provide several worker threads for those interfaces to send work to. 
 
-Furthermore, the previous design of this sensor was a bit lackluster. It contained a class called `CaptureSession` which controlled and coordinated everything. While this was useful for developing and testing other features like analyzers, it is no longer sufficient for the tasks at hand and particularly for multithreading. This article discusses and alternative design using IO Sources.
+Furthermore, the previous design of this sensor was a bit lackluster. It contained a class called `CaptureSession` which controlled and coordinated everything. While this was useful for developing and testing other features like analyzers, it is no longer sufficient for the tasks at hand and particularly for multithreading. This article discusses an alternative design using IO Sources.
 
 ### Capture and Analysis Threads
 
-After much self-debate, I decided to name the class that facilitates the reading of packets and running of the analysis pipeline, the `Pipeline` class. This is configured with a single IO Source and an 'entry point' analyzer. This would be the link type, for example, Ethernet. We could also develop an 802.11 decoder and use that as the entry point. While not necessarily within the scope of this article, I think it would be interested to see if it is possible to detect deauthentication attacks. Later in this series, we will be tracking TCP conversations; I imagine the overall architecture would look similar.
+After much self-debate, I decided to name the class that facilitates the reading of packets and running of the analysis pipeline, the `Pipeline` class. This is configured with a single IO Source and an 'entry point' analyzer. This would be the link type, for example, Ethernet. We could also develop an 802.11 decoder and use that as the entry point. While not necessarily within the scope of this article, I think it would be interesting to see if it is possible to detect deauthentication attacks. Later in this series, we will be tracking TCP conversations; I imagine the overall architecture would look similar.
 
 This is an outline of the pipeline class:
 ```c++
@@ -55,7 +55,7 @@ private:
 };
 ```
 
-As is evident, this is a pretty hefty class. This diagram illustrates how this threads are used:
+As is evident, this is a pretty hefty class. This diagram illustrates how these threads are used:
 ![](images/image.png)
 
 The `Pipeline` creates one thread (`inputReadingThread`) that reads data from `m_ioSource`. It then locks the mutex (1), pushes the read data into `m_workQueue` (2), and finally notifies all waiting threads that there is data (3):
@@ -106,7 +106,7 @@ void Pipeline::workerThread(std::stop_token token)
         m_newWorkCV.wait(lock, [this](){ return m_workQueue.size() > 0;});
 
         // (4)
-        RawPacket rawpkt = m_workQueue.front();
+        RawPacket rawpkt = std::move(m_workQueue.front());
         m_workQueue.pop();
         lock.unlock();
 
@@ -117,7 +117,7 @@ void Pipeline::workerThread(std::stop_token token)
 }
 ```
 
-Here is an screenshot of debug messages from the various threads where `THRD` is the input thread:
+Here is a screenshot of debug messages from the various threads where `THRD` is the input thread:
 ![](images/threaddbg.png)
 
 ### IO Sources
@@ -181,7 +181,7 @@ RawPacket NetworkAdapter::readPacket()
 ```
 
 #### PCAP Files
-PCAP is a delightfully simply file format, unlike its sibling PCAPNG. It contains one global file header with information about timestamp formats and link types, then a per-packet header containing the timestamp and packet length:
+PCAP is a delightfully simple file format, unlike its sibling PCAPNG. It contains one global file header with information about timestamp formats and link types, then a per-packet header containing the timestamp and packet length:
 ```c++
 constexpr uint32_t PCAP_HEADER_MAGIC_US     = 0xA1B2C3D4;
 constexpr uint32_t PCAP_HEADER_MAGIC_NS     = 0xA1B23C4D;
@@ -241,7 +241,7 @@ PCAPReader::PCAPReader(const std::string& filename)
         m_tstype = TimestampType::MICROSECONDS;
     else 
     {
-        SENSOR_DBG("Invalid PCAP file \"{}\", invalid headed found (0x{:02x})", filename, header.magic);
+        SENSOR_DBG("Invalid PCAP file \"{}\", invalid header found (0x{:02x})", filename, header.magic);
         m_input.close();
         return;
     }
@@ -298,9 +298,9 @@ RawPacket PCAPReader::readPacket()
 ```c++
 PCAPWriter::PCAPWriter(const std::string& filename)
 {
-    m_ouput = std::ofstream{filename, std::ios::binary};
+    m_output = std::ofstream{filename, std::ios::binary};
 
-    if (!m_ouput.is_open())
+    if (!m_output.is_open())
     {
         SENSOR_DBG("Failed to open file \"{}\" for writing", filename);
         return;
@@ -314,15 +314,15 @@ PCAPWriter::PCAPWriter(const std::string& filename)
         .linktype   = DLT_EN10MB
     };
 
-    m_ouput.write(
+    m_output.write(
         reinterpret_cast<const char*>(&header),
         sizeof(header)
     );
 
-    if (!m_ouput.good())
+    if (!m_output.good())
     {
         SENSOR_DBG("Failed to write PCAP Header...");
-        m_ouput.close();
+        m_output.close();
         return;
     }
 }
@@ -334,7 +334,7 @@ RawPacket PCAPWriter::readPacket()
 
 bool PCAPWriter::isOpen() const
 {
-    return m_ouput.is_open();
+    return m_output.is_open();
 }
 
 size_t PCAPWriter::writePacket(const Packet& packet)
@@ -347,16 +347,16 @@ size_t PCAPWriter::writePacket(const Packet& packet)
         .caplen                 = static_cast<uint32_t>(packet.captureLength()),
         .originallen            = static_cast<uint32_t>(packet.length())
     };
-    m_ouput.write(
+    m_output.write(
         reinterpret_cast<const char*>(&record),
         sizeof(record)
     );
 
-    m_ouput.write(
+    m_output.write(
         reinterpret_cast<const char*>(packet.getRawPacket().data()),
         record.originallen
     );
-    m_ouput.flush();
+    m_output.flush();
 
     return sizeof(record) + packet.captureLength();
 }
@@ -364,13 +364,13 @@ size_t PCAPWriter::writePacket(const Packet& packet)
 </details>
 
 ### The Next Set of Articles
-The first three articles of this series has covered primarily architectural concerns. We can now
+The first three articles of this series have covered primarily architectural concerns. We can now
 1. Capture Packets from through a well defined interface
 2. Analyze protocols and easily add new ones
 3. Multithread said analysis
 4. Efficiently manage memory used by analysis threads
 
-Areas that are lacking including:
+Areas that are lacking include:
 1. Command Line and File configuration
 2. Hardcoded protocol mappings
 3. Orchestration
@@ -383,7 +383,7 @@ These will be resolved hopefully in the next set of articles, which will include
 
 <br>
 <div>
-    <a class="link-button" href="../article-04">Prev</a>
+    <a class="link-button" href="../article-03">Prev</a>
     <a class="link-button" href="../">Article Home</a>
 </div>
 <br>

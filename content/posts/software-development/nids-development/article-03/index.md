@@ -18,7 +18,7 @@ title = 'NIDS 02 - New Decoding Design and Linear Memory Allocation'
 3. [Dumping Packets to the Console](#dumping-packets-to-the-console)
 
 ### Analysis and Decoding Infrastructure {id=analysis-and-decoding-infrastructure}
-In the previous article I discussed a method analysis/decoding involving a base `sensor::Analyzer` class. This alone is not sufficient for our goals. Ideally, when the rule language - which hasn't been discussed much up to this point - is complete, we could have rules like this:
+In the previous article I discussed a method of analysis/decoding involving a base `sensor::Analyzer` class. This alone is not sufficient for our goals. Ideally, when the rule language - which hasn't been discussed much up to this point - is complete, we could have rules like this:
 ```snort
 alert http $externalnet:any -> $homenet:any {
     message: "Some Message Here";
@@ -83,9 +83,9 @@ std::vector<Protocol*>
 // or
 std::vector<std::shared_ptr<Protocol>>
 ```
-There is nothing inherently wrong with this...except for the fact that this usually requires heap memory allocation. This would heap allocate memory several times *per packet*.
+There is nothing inherently wrong with this...except for the fact that this usually requires heap memory allocation. This would heap-allocate memory several times *per packet*.
 
-The solution I came up with was a Linear Allocator. While not quite as type-safe, it solves the problem at hand. The Linear Allocator would allocate one gigantic buffer, then 'suballocate' chunks of that buffer, one after the other (hence *linear*). One problem with this system is that it, by itself, does not provide a way to track allocations. This would not be a problem in a pool allocator, which is essentially a (potentially fragmented) dynamic array. A pool allocator allocates fixed-sized chunks of data and can handle resizing, arbitrary free-ing, and destruction itself. Another is that it cannot safely store types that have a destructor defined (i.e. *not* `std::is_trivially_destructible`). To solve these, I designed a wrapper around this called a Tracked Linear Allocator. This will store not only a pointer to the allocated object but also a pointer to a deleter function to destroy it if necessary.
+The solution I came up with was a Linear Allocator. While not quite as type-safe, it solves the problem at hand. The Linear Allocator would allocate one gigantic buffer, then 'suballocate' chunks of that buffer, one after the other (hence *linear*). One problem with this system is that it, by itself, does not provide a way to track allocations. This would not be a problem in a pool allocator, which is essentially a (potentially fragmented) dynamic array. A pool allocator allocates fixed-sized chunks of data and can handle resizing, arbitrary freeing, and destruction itself. Another limitation is that it cannot safely store types that have a destructor defined (i.e. *not* `std::is_trivially_destructible`). To solve these, I designed a wrapper around this called a Tracked Linear Allocator. This will store not only a pointer to the allocated object but also a pointer to a deleter function to destroy it if necessary.
 
 Here is a diagram of the linear allocator (TLA = `TrackedLinearAllocator`):
 ![](images/image2.png)

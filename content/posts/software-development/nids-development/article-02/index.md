@@ -13,7 +13,7 @@ weight = 2
 <br>
 
 ### Table Of Contents
-1. [Creating a simple decoding pipeline](#packet-analyzers-and-the-protocol-manager)
+1. [Packet Analyzers and the Protocol Manager](#packet-analyzers-and-the-protocol-manager)
 2. [Setting up a capture session and thread](#the-capture-session)
 3. [Beginning the Analysis Pipeline](#beginning-the-analysis-pipeline)
 4. [Next Steps](#next-steps)
@@ -61,7 +61,7 @@ protected:
 };
 ```
 
-The analyze function is a critical part of this class. It takes a `PacketData` - which may in the future be replaced with a `std::span` or something similar - which contains a pointer to the very base of the packet and total length. `data` and `length` refer only to subsections of `PacketData`. For example, as seen below when we discuss analyzing the ethernet protocol, the `data` and `length` of the next protocol, regardless of what it might be, are adjusted so that they respectively point to and describe the next protocol,  while preserving the original packet in the `PacketData`.
+The analyze function is a critical part of this class. It takes a `PacketData` object—which contains a pointer to the base of the packet and its total length - and may be replaced by `std::span` in the future.. `data` and `length` refer only to subsections of `PacketData`. For example, as seen below when we discuss analyzing the ethernet protocol, the `data` and `length` of the next protocol, regardless of what it might be, are adjusted so that they respectively point to and describe the next protocol,  while preserving the original packet in the `PacketData`.
 
 Finally, the protocol map serves to, alongside the `ProtocolManager`, map protocol specific protocol numbers to their respective analyzers. These analyzers use `weak_ptr`s because they shouldn't be storing a hard reference to any other analyzer. This could cause issues if we need to decode embedded protocols. For example, an IP tunnelling analyzer might have a pipeline that looks like this: `Ethernet -> IP -> IP Tunnel -> IP -> TCP -> ...`. If we stored `shared_ptr`s to and from each of these protocols, we would have a circular reference cycle; there would be no way for certain reference counts to reach zero, and we could thus leak memory.
 
@@ -70,7 +70,7 @@ The protocol manager does two things:
 1. It stores instances of analyzers
 2. It helps associate one analyzer with another given a protocol number.
 
-The protocol manager contains a mapping of `tag_t` to `Analyzer` and for each new association, updates the parent `Analyzer`'s protocol map. In the end, it is reminiscent of a graph.
+The protocol manager contains a mapping of `tag_t` to `Analyzer` and, for each new association, updates the parent `Analyzer`'s protocol map. In the end, it is reminiscent of a graph.
 
 To begin with, I defined a `concept` to ensure that only valid `Analyzer`s are given to the templated functions of the `ProtocolManager`:
 ```c++
@@ -154,7 +154,7 @@ CaptureSession::~CaptureSession()
 bool CaptureSession::isReady() const { return m_handle != nullptr; }
 ```
 
-With this we can be capturing packets. There are a couple of ways to do this. One is via `pcap_next`, this is a very manual process; the other is `pcap_loop`, this takes a callback and does quite a bit of work for you. I will be using the latter and running it on a separate thread.
+With this we can be capturing packets. There are a couple of ways to do this. One is via `pcap_next` - this is a very manual process; the other is `pcap_loop`, which takes a callback and does quite a bit of work for you. I will be using the latter and running it on a separate thread.
 ```c++
 void PcapLoopFunction(u_char* args, const pcap_pkthdr* hdr, const u_char* pkt)
 {

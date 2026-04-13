@@ -21,7 +21,7 @@ weight = 1
 ### Introduction
 Network Intrusion Detection Systems (NIDS) and Prevention Systems (NIPS) are an important part of the in-depth defense of an organization. These are systems that analyze networking traffic, apply some sort of detection logic, and in some cases, actively block network traffic deemed malicious.
 
-Many years ago, I developed an IDS which I called 'Vigil' (as in 'a period of observation/surveillance') and later renamed it to 'NSense'. This was one of my very first programming projects that was a not simple script or experiment. While I cannot attest to the quality of the previous project, it most certainly helped me learn a lot of what I know today. 
+Many years ago, I developed an IDS which I called 'Vigil' (as in 'a period of observation/surveillance') and later renamed it to 'NSense'. This was one of my very first programming projects that was not a simple script or experiment. While I cannot attest to the quality of the previous project, it most certainly helped me learn a lot of what I know today. 
 
 This series of articles aims to redevelop the previous system by applying what I have learned over the last 6 years.
 
@@ -29,11 +29,11 @@ The goals, therefore, of this project are:
 1. Incorporate a multi-threaded analysis pipeline
 2. Develop a more powerful decoding system
 3. Re-write the detection engines, particularly the rule and conversation tracking engines
-4. Improved reporting features - Vigil could only do primitive logging
+4. Improved reporting features - Vigil could only do primitive logging.
 
 ### Features
 Some specific features I would like to implement throughout this series of articles are:
-1. UDP Decoding - This was a major deficit of NSense
+1. UDP Decoding - This was a major deficiency of NSense
 2. Conversation Analysis
 3. Flow Analysis (e.g. for detecting beaconing)
 4. Custom Rule Language - likely based on Snort's
@@ -86,7 +86,7 @@ The analysis pipeline will continue to be fairly simple, although (much) more fl
     - Flow Analyzer
     - Anomaly Detection
     - Heuristics (e.g. beaconing)
-7. Finally, a report is queued and sent to some report sink, such as ELK or Syslog.
+7. Finally, a report is queued and sent to one or more report sinks, such as ELK or Syslog.
 
 ### Next Steps
 The next article will cover setting up `libpcap` and a capture thread.
