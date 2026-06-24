@@ -8,6 +8,7 @@ title = 'NIDS 03 - IO Sources and Multithreading'
 <div>
     <a class="link-button" href="../article-03">Prev</a>
     <a class="link-button" href="../">Article Home</a>
+    <a class="link-button" href="../article-05">Next</a>
 </div>
 <br>
 
@@ -385,5 +386,6 @@ These will be resolved hopefully in the next set of articles, which will include
 <div>
     <a class="link-button" href="../article-03">Prev</a>
     <a class="link-button" href="../">Article Home</a>
+    <a class="link-button" href="../article-05">Next</a>
 </div>
 <br>
