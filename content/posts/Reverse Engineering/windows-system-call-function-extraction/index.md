@@ -13,16 +13,16 @@ title = 'Windows System Call Function Extraction'
 ### Introduction
 I was recently poking around Windows ETW libraries; I had found a mysterious bug in my program that manifested itself within a function exported by `sechost.dll`—`ControlTraceW`. I passed a random integer instead of a valid pointer, and because the pointer was being casted via `reinterpret_cast`, and it was a semi-valid conversion, the compiler, without all warnings on, didn't bother to mention it. So after some reverse engineering I found out that the parameter `ControlTraceW` was expecting was a `LPWSTR`; the program crashed within the function when it tried to determine the length of this. At first I was wondering whether this was an actual, critical security issue, but through research I found that `ControlTraceW` and `sechost.dll` are operating in the process's memory space, not kernel space. So while it is extremely dubious, it is not a "real" security issue, per se. 
 
-![](image.png)
+![](images/image.png)
 *`InstanceName` is the parameter I did not set correctly; being referenced via `rbp` (`rbx` is a length counter), this fails at `18000a06a` if the integer does not point to a valid memory address*
 
 But I decided to poke around further to see what exactly `ControlTraceW` was doing. Its parameters include a `ControlCode` (`ULONG`), which appears to be routed via a switch statement (I hope) to an internal function, marked with the `Etwp` namespace, that is, "Event Tracing for Windows private". Each of those functions that are called by `ControlTraceW` generally make a call to `NtTraceControl`...but what is this? 
 
-![alt text](image1.png)
+![alt text](images/image1.png)
 
 This is an imported function from `NTDLL.DLL`, where many such functions live. Those functions tend to look like this:
 
-![alt text](image-1.png)<center><i><code>ntdll!NtTraceControl</code></i></center>
+![alt text](images/image-1.png)<center><i><code>ntdll!NtTraceControl</code></i></center>
 
 These functions are wrappers around system calls, much like function such as `execve` in Linux. The system call number is set via the `eax` register (addr `1800a4843`) before trapping into the kernel (addr `1800a4854`). These functions have such little variation it is possible to extract system call numbers from the function’s instructions and then call them manually, perhaps to evade outdated AV/EDR programs.
 
@@ -35,11 +35,11 @@ The first step I took was to crack open Windows Internals Part II and flip to Ch
 
 In this diagram, we can see the general flow of a system call; the "System Service Dispatch Table" is what I am looking for:
 
-![alt text](image-2.png)
+![alt text](images/image-2.png)
 
 Fortunately there is a section in this chapter that tells you *exactly* what this table is and how to parse it:
 
-![alt text](image-3.png)
+![alt text](images/image-3.png)
 
 So now all that is left for us to do are the following:
 - Load the kernel file---I am doing everything statically, so the Rust program will essentially be an automated reverse engineering tool
@@ -53,7 +53,7 @@ So now all that is left for us to do are the following:
 ### Outline of the Rust Program
 Having never written anything substantial (only about half a M6502 emulator) in Rust, I had some trouble to start with, but not nearly as much as I was expecting. The first hurdle was perhaps the wrong thing to start with, but given my lack of familiarity, I decided to start with a limited clone of POSIX's `getopt` function. 
 
-![alt text](image-4.png)
+![alt text](images/image-4.png)
 
 Originally, the only thirdparty library I was going to use was `reqwest`, but I decided to use `zerocopy` for a more idiomatic approach for binary deserialization. And after stumbling into whatever circle of hell Microsoft documentation resides, I decided to use their `pdb-rs` library.
 
@@ -222,7 +222,7 @@ It is not an entirely straight path to get the Raw Debug Directory, which is not
 
 This is the overall process of extracting the Raw Debug Directory:
 
-![alt text](image-5.png)
+![alt text](images/image-5.png)
 
 To make extracting this structure using `zerocopy` easier, I actually split it into two structures. This was so I could return a reference to the string instead of copying it:
 ```rust
@@ -501,7 +501,7 @@ In parsing the file, the class extract the name and RVA of each function it find
 
 And with that, we have a function map:
 
-![alt text](image-6.png)
+![alt text](images/image-6.png)
 
 ### Putting It All Together: System Call Extraction
 
@@ -586,7 +586,7 @@ impl Extractor {
 
 And here are the results:
 
-![alt text](image-7.png)
+![alt text](images/image-7.png)
 
 My copy of the kernel has 485 (`0x1e5`) system calls, but this will vary from system to system.
 
