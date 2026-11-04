@@ -11,12 +11,12 @@ title = 'Windows System Call Function Extraction'
 4. Parsing the Kernel Image
 
 ### Introduction
-I was recently poking around Windows ETW libraries; I had found a mysterious bug in my program that manifested itself within a function exported by `sechost.dll`—`ControlTraceW`. I passed a random integer instead of a valid pointer, and because the pointer was being casted via `reinterpret_cast`, and it was a semi-valid conversion, the compiler, without all warnings on, didn't bother to mention it. So after some reverse engineering I found out that the parameter `ControlTraceW` was expecting was a `LPWSTR`; the program crashed within the function when it tried to determine the length of this. At first I was wondering whether this was an actual, critical security issue, but through research I found that `ControlTraceW` and `sechost.dll` are operating in the process's memory space, not kernel space. So while it is extremely dubious, it is not a "real" security issue, per se. 
+I was recently poking around Windows ETW libraries; I had found a mysterious bug in my program that manifested itself within a function exported by `sechost.dll`—`ControlTraceW`. I passed a random integer instead of a valid pointer, and because the pointer was being cast via `reinterpret_cast`, and it was a semi-valid conversion, the compiler, without all warnings on, didn't bother to mention it. So after some reverse engineering I found out that the parameter `ControlTraceW` was expecting was an `LPWSTR`; the program crashed within the function when it tried to determine the length of this. At first I was wondering whether this was an actual, critical security issue, but through research I found that `ControlTraceW` and `sechost.dll` are operating in the process's memory space, not kernel space. So while it is extremely dubious, it is not a "real" security issue, per se. 
 
 ![](images/image.png)
 *`InstanceName` is the parameter I did not set correctly; being referenced via `rbp` (`rbx` is a length counter), this fails at `18000a06a` if the integer does not point to a valid memory address*
 
-But I decided to poke around further to see what exactly `ControlTraceW` was doing. Its parameters include a `ControlCode` (`ULONG`), which appears to be routed via a switch statement (I hope) to an internal function, marked with the `Etwp` namespace, that is, "Event Tracing for Windows private". Each of those functions that are called by `ControlTraceW` generally make a call to `NtTraceControl`...but what is this? 
+But I decided to poke around further to see what exactly `ControlTraceW` was doing. Its parameters include a `ControlCode` (`ULONG`), which appears to be routed via a switch statement (I hope) to an internal function, marked with the `Etwp` namespace, that is, "Event Tracing for Windows private". Each of those functions that are called by `ControlTraceW` generally makes a call to `NtTraceControl`...but what is this? 
 
 ![alt text](images/image1.png)
 
@@ -41,21 +41,21 @@ Fortunately there is a section in this chapter that tells you *exactly* what thi
 
 ![alt text](images/image-3.png)
 
-So now all that is left for us to do are the following:
+So now all that is left for us to do os the following:
 - Load the kernel file---I am doing everything statically, so the Rust program will essentially be an automated reverse engineering tool
 - Parse the file
-- Load the PDB---this is where most of development issues arose
+- Load the PDB---this is where most of the development issues arose
 - Locate and parse `KiServiceTable` and `KiServiceLimit`
-    - `KiServiceLimit` was not mentioned anywhere, but in memory, it is located just after `KiServiceTable`. Doing some math, I found it coincidentally was equal to the number of 32 bit integers in `KiServiceTable`
+    - `KiServiceLimit` was not mentioned anywhere, but in memory, it is located just after `KiServiceTable`. Doing some math, I found it coincidentally was equal to the number of 32-bit integers in `KiServiceTable`
 - Associate functions within the PDB with functions found in `KiServiceTable`
 - Print out a nice table
 
 ### Outline of the Rust Program
-Having never written anything substantial (only about half a M6502 emulator) in Rust, I had some trouble to start with, but not nearly as much as I was expecting. The first hurdle was perhaps the wrong thing to start with, but given my lack of familiarity, I decided to start with a limited clone of POSIX's `getopt` function. 
+Having never written anything substantial (only about half an M6502 emulator) in Rust, I had some trouble to start with, but not nearly as much as I was expecting. The first hurdle was perhaps the wrong thing to start with, but given my lack of familiarity, I decided to start with a limited clone of POSIX's `getopt` function. 
 
 ![alt text](images/image-4.png)
 
-Originally, the only thirdparty library I was going to use was `reqwest`, but I decided to use `zerocopy` for a more idiomatic approach for binary deserialization. And after stumbling into whatever circle of hell Microsoft documentation resides, I decided to use their `pdb-rs` library.
+Originally, the only thirdparty library I was going to use was `reqwest`, but I decided to use `zerocopy` for a more idiomatic approach for binary deserialization. And after stumbling into whatever circle of hell Microsoft documentation resides in, I decided to use their `pdb-rs` library.
 
 ### Parsing the PE File
 The primary two issues with parsing PE files in my experience have been the following:
@@ -106,7 +106,7 @@ impl Extractor {
 The built-in `Result` and `Option` types are very handy---C++ is only just now catching up with `std::expected` in C++23. Furthermore, the ability to simply add a question mark at the end of a function that returns a `Result` makes the code much less verbose, removing what would now be boilerplate `if-else` statements.
 
 #### Headers
-Fortunately, the portable executable file format is extremely well documented, very much the PDB files we will soon see. Thus, we need only re-define them. I opted to do this over a library so I could see how something like this was done in Rust, and because it would force me to learn more about the file format. This far, my experience with manual parsing has been limited to import/export extraction. 
+Fortunately, the portable executable file format is extremely well documented, very much like the PDB files we will soon see. Thus, we need only re-define them. I opted to do this over a library so I could see how something like this was done in Rust, and because it would force me to learn more about the file format. Thus far, my experience with manual parsing has been limited to import/export extraction. 
 
 Here is an example of the `IMAGE_SECTION_HEADER` struct:
 ```rust
@@ -137,10 +137,10 @@ pub:
     ...
 }
 ```
-But there is no issue with the way Rust does things here. In fact, the Rust way is more common that what C++ does: Java and C# enforce it in practically the same way.
+But there is no issue with the way Rust does things here. In fact, the Rust way is more common than what C++ does: Java and C# enforce it in practically the same way.
 
 #### Deserialization
-Doing the amount of I work I do with binary data, I often judge a language by its ability to hand such data. C and C++ handle it well---although unsafely---unless you need support for complex deserialization, e.g. of a class from a binary file. Java, on the other hand, boasts no built-in support for even the simplest of binary deserialization, except from Java Object -> Java Bytes -> Java Object. Even thirdparty Java libraries are bit heavy for just extracting a few ints from a blob. In fact, when I wrote a PE parser for college---using Java---I wrote my own deserializer based off of PHP's.
+Doing the amount of work I do with binary data, I often judge a language by its ability to handle such data. C and C++ handle it well---although unsafely---unless you need support for complex deserialization, e.g. of a class from a binary file. Java, on the other hand, boasts no built-in support for even the simplest of binary deserialization, except from Java Object -> Java Bytes -> Java Object. Even thirdparty Java libraries are a bit heavy for just extracting a few ints from a blob. In fact, when I wrote a PE parser for college---using Java---I wrote my own deserializer based off of PHP's.
 
 Rust is sits right in the middle with it `zerocopy` crate.  
 
@@ -394,7 +394,7 @@ mod pdb_cache {
 ### Loading the PDB
 This is where the most trouble during the entire development of this little program arose. I found [`pdb-rs`](https://github.com/microsoft/pdb-rs), a crate provided *by Microsoft themselves* to parse PDB files. Even even contains "documentation". Of course, it warns its potential victims with an all-caps banner claiming that, despite being hosted by Microsoft and owned by Microsoft, it is not authoritative and might not work. But despite my complaining about Microsoft, using this library was still better, in most ways, than parsing the PDB file myself manually.
 
-The first hurdle was that the PDB class provided by the create doesn't not let you pass an array of bytes to its constructor. It only takes files and file paths. So the data we just downloaded? You can throw it out the window so `ms_pdb::Pdb` can go and fetch it.
+The first hurdle was that the PDB class provided by the crate does not let you pass an array of bytes to its constructor. It only takes files and file paths. So the data we just downloaded? You can throw it out the window so `ms_pdb::Pdb` can go and fetch it.
 
 But loading the PDB is still very simple, much simpler than if I were to write an implementation myself:
 
