@@ -1,6 +1,6 @@
 +++
 date = '2026-11-03T14:33:57-05:00'
-draft = true
+draft = false
 title = 'Windows System Call Function Extraction'
 +++
 
